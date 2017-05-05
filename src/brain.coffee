@@ -931,8 +931,7 @@ class Brain
 
       parts = match[1].split("|")
       opts  = []
-      for p in parts
-        p = parts[j]
+      for p, pidx in parts
         # Word boundaries fail on UTF8 strings, so we shouldn't rely on them.
         # If we start or end our regex with a boundary expectation ([\b]+), it
         #   will always fail when a UTF8 string exists on that boundary.
@@ -941,9 +940,9 @@ class Brain
         # (^~this~$) to enforce boundaries.
         # Note that this isn't perfect, still, as we still have to rely on spaces as word
         # separators in UTF8 strings - unspaced comma separations would fail (foo,bar vs foo bar)
-        if match.index != 0 or j > 0
+        if match.index != 0 or pidx > 0
             p = "(?:\\s|\\b)+" + p
-        if (match.index + 9) < regexp.length or j < len - 1
+        if (match.index + 9) < regexp.length or pidx < regexp.length - 1
             p += "(?:\\s|\\b)+"
         opts.push(p)
 
