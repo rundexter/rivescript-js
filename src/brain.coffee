@@ -932,7 +932,20 @@ class Brain
       parts = match[1].split("|")
       opts  = []
       for p in parts
-        opts.push "(?:\\s|\\b)+#{p}(?:\\s|\\b)+"
+        p = parts[j]
+        # Word boundaries fail on UTF8 strings, so we shouldn't rely on them.
+        # If we start or end our regex with a boundary expectation ([\b]+), it
+        #   will always fail when a UTF8 string exists on that boundary.
+        # Therefore we want to make sure to skip such boundary checks at the ends of
+        # our regex, and we'll rely on the full-line checks added elsewhere in the code
+        # (^~this~$) to enforce boundaries.
+        # Note that this isn't perfect, still, as we still have to rely on spaces as word
+        # separators in UTF8 strings - unspaced comma separations would fail (foo,bar vs foo bar)
+        if match.index != 0 or j > 0
+            p = "(?:\\s|\\b)+" + p
+        if (match.index + 9) < regexp.length or j < len - 1
+            p += "(?:\\s|\\b)+"
+        opts.push(p)
 
       # If this optional had a star or anything in it, make it non-matching.
       pipes = opts.join("|")
