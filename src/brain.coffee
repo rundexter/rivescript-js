@@ -889,6 +889,7 @@ class Brain
   # Prepares a trigger for the regular expression engine.
   ##
   triggerRegexp: (user, regexp) ->
+    boundary = "(?:^|$|\\s|\\b)+"
     # If the trigger is simply '*' then the * needs to become (.*?)
     # to match the blank string too.
     regexp = regexp.replace(/^\*$/, "<zerowidthstar>")
@@ -932,19 +933,7 @@ class Brain
       parts = match[1].split("|")
       opts  = []
       for p, pidx in parts
-        # Word boundaries fail on UTF8 strings, so we shouldn't rely on them.
-        # If we start or end our regex with a boundary expectation ([\b]+), it
-        #   will always fail when a UTF8 string exists on that boundary.
-        # Therefore we want to make sure to skip such boundary checks at the ends of
-        # our regex, and we'll rely on the full-line checks added elsewhere in the code
-        # (^~this~$) to enforce boundaries.
-        # Note that this isn't perfect, still, as we still have to rely on spaces as word
-        # separators in UTF8 strings - unspaced comma separations would fail (foo,bar vs foo bar)
-        if match.index != 0 or pidx > 0
-            p = "(?:\\s|\\b)+" + p
-        if (match.index + 9) < regexp.length or pidx < regexp.length - 1
-            p += "(?:\\s|\\b)+"
-        opts.push(p)
+        opts.push(boundary + p + boundary);
 
       # If this optional had a star or anything in it, make it non-matching.
       pipes = opts.join("|")
@@ -957,7 +946,7 @@ class Brain
       pipes = pipes.replace(/\[/g, "__lb__").replace(/\]/g, "__rb__")
 
       regexp = regexp.replace(new RegExp("\\s*\\[" + utils.quotemeta(match[1]) + "\\]\\s*"),
-        "(?:#{pipes}|(?:\\b|\\s)+)")
+        "(?:#{pipes}|" + boundary + ")")
       match = regexp.match(/\[(.+?)\]/)
 
     # Restore the literal square brackets.
