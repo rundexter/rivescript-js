@@ -932,7 +932,7 @@ class Brain
 
       parts = match[1].split("|")
       opts  = []
-      for p, pidx in parts
+      for p in parts
         opts.push(boundary + p + boundary);
 
       # If this optional had a star or anything in it, make it non-matching.
