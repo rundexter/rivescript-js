@@ -242,17 +242,25 @@ exports.test_reply_arrays = (test) ->
 
 exports.test_raw = (test) ->
   bot = new TestCase(test, '''
+    > object test javascript
+    return 'OH NO';
+    < object
+
     + rawget
     - OK ##<get foo>## DONE
     
     + rawtopic
     - OK ##{topic=foo}## DONE
+
+    + rawcall
+    - OK ##<call>test</call>## DONE
     
     + multiraw
     - ##{@one}## ...OK... ##^two()## ...DONE? ##${{Three}}## !
   ''')
   bot.replyPromisified('rawget', 'OK <get foo> DONE')
   .then -> bot.replyPromisified('rawtopic', 'OK {topic=foo} DONE')
+  .then -> bot.replyPromisified('rawcall', 'OK <call>test</call> DONE')
   .then -> bot.replyPromisified('multiraw', '{@one} ...OK... ^two() ...DONE? ${{Three}} !')
   .catch (err) -> test.ok(false, err.stack)
   .then -> test.done()

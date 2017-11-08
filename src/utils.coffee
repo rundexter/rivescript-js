@@ -10,7 +10,7 @@
 ##
 
 exports.RAW_DELIMITER = '##'
-exports.RAW_START = parseInt('EA00', 16) # Arbitrarly private-use unicode character
+exports.RAW_START = parseInt('FA000', 16) # Arbitrarly private-use unicode character
 
 ##
 # string strip (string)
@@ -182,16 +182,16 @@ exports.nIndexOf = (string, match, index) ->
 #
 # Usage:
 # string = "Do you want to ##<get foo>##?"
-# return = {result: "Do you want to !?", replacements: {!: "<get foo>"}}
+# return = {result: "Do you want to !?", replacements: {!: "##<get foo>##"}}
 #
 # Summary: Strips chunks flagged as raw from string
 ##
 exports.extractRaw = (string) ->
-  re = new RegExp(exports.RAW_DELIMITER + '(.*?)' + exports.RAW_DELIMITER, 'g')
+  re = new RegExp('(' + exports.RAW_DELIMITER + '.*?' + exports.RAW_DELIMITER + ')', 'g')
   response = {replacements: {}, result: ''}
   currKey = exports.RAW_START
   response.result = string.replace(re, ((match, raw, pos) ->
-    replacement = String.fromCharCode(currKey)
+    replacement = String.fromCodePoint(currKey)
     response.replacements[replacement] = raw
     currKey += 1
     replacement
@@ -215,3 +215,20 @@ exports.restoreRaw = (string, replacements) ->
   for placeholder, replacement of replacements
     string = string.replace(placeholder, replacement)
   string
+
+##
+# string cleanupRaw (string)
+#
+# Clears any raw delimiters remaining in a string
+#
+# Usage:
+# string = "Do you want to ! ##<get foo>##?"
+# return = "Do you want to <get foo>?"
+#
+# Summary: Removes characters left over from raw processing
+##
+exports.cleanupRaw = (string) ->
+  rangeStart = exports.RAW_START.toString(16)
+  rangeEnd = (exports.RAW_START + 100).toString(16)
+  re = new RegExp('(?:' + exports.RAW_DELIMITER + ')', 'g')
+  return string.replace(re, '')

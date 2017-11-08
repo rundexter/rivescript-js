@@ -77,10 +77,10 @@ class Brain
         reply = @processCallTags(reply, scope, true, hooks)
 
       if not utils.isAPromise(reply)
-        @onAfterReply(msg, user, reply)
+        reply = @onAfterReply(msg, user, reply)
       else
         return reply.then (result) =>
-          @onAfterReply(msg, user, result)
+          reply = @onAfterReply(msg, user, result)
           reply
       reply
 
@@ -323,10 +323,10 @@ class Brain
     reply = @processCallTags(reply, scope, async)
 
     if not utils.isAPromise(reply)
-      @onAfterReply(msg, user, reply)
+      reply = @onAfterReply(msg, user, reply)
     else
       reply.then (result) =>
-        @onAfterReply(msg, user, result)
+        reply = @onAfterReply(msg, user, result)
 
     return reply
 
@@ -340,6 +340,9 @@ class Brain
     # Unset the current user ID.
     @_currentUser = undefined
 
+    # Clean up any remaining raw text markers
+    utils.cleanupRaw(reply)
+
   ##
   # string|Promise processCallTags (string reply, object scope, bool async, object hooks)
   #
@@ -349,6 +352,7 @@ class Brain
   # Hooks are passed along so that they can be hadned off to redirects.
   ##
   processCallTags: (reply, scope, async, hooks) ->
+    {replacements: replacements, result: reply} = utils.extractRaw(reply)
     reply = reply.replace(/«__call__»/ig, "<call>")
     reply = reply.replace(/«\/__call__»/ig, "</call>")
     callRe = /<call>([\s\S]+?)<\/call>/ig
@@ -401,8 +405,11 @@ class Brain
 
     if async
       return @._resolveCallTagsAsync(callSignatures, reply)
+        .then (reply) => 
+          utils.restoreRaw(reply, replacements)
     else
-      return @._resolveCallTags(callSignatures, reply)
+      reply = @._resolveCallTags(callSignatures, reply)
+      utils.restoreRaw(reply, replacements)
 
   _resolveCallTagsAsync: (callSignatures, reply) ->
     return q.all(_.map(callSignatures, 'output'))
@@ -1254,6 +1261,7 @@ class Brain
   # a separate subroutine (refer to `processCallTags` for more info)
   ##
   processTags: (user, msg, reply, st, bst, step, scope) ->
+    {replacements: replacements, result: reply} = utils.extractRaw(reply)
     # Prepare the stars and botstars.
     stars = [""]
     stars.push.apply(stars, st)
@@ -1479,6 +1487,7 @@ class Brain
       reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
       match = reply.match(/\{@([^\}]*?)\}/)
 
+    reply = utils.restoreRaw(reply, replacements)
     return reply
 
   ##
