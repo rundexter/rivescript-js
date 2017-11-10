@@ -240,19 +240,19 @@ exports.test_raw = (test) ->
     < object
 
     + rawget
-    - OK ##<get foo>## DONE
+    - OK <raw><get foo></raw> DONE
     
     + rawtopic
-    - OK ##{topic=foo}## DONE
+    - OK <raw>{topic=foo}</raw> DONE
 
     + rawcall
-    - OK ##<call>test</call>## DONE
+    - OK <raw><call>test</call></raw> DONE
     
     + multiraw
-    - ##{@one}## ...OK... ##^two()## ...DONE? ##${{Three}}## !
+    - <raw><call>test</call></raw> <call>test</call> <raw>^two()</raw> ...DONE? <raw>{@ok}</raw>!
   ''')
   bot.reply('rawget', 'OK <get foo> DONE')
   bot.reply('rawtopic', 'OK {topic=foo} DONE')
   bot.reply('rawcall', 'OK <call>test</call> DONE')
-  bot.reply('multiraw', '{@one} ...OK... ^two() ...DONE? ${{Three}} !')
+  bot.reply('multiraw', '<call>test</call> OH NO ^two() ...DONE? {@ok}!')
   test.done()

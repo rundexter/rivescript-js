@@ -9,8 +9,9 @@
 # Miscellaneous utility functions.
 ##
 
-exports.RAW_DELIMITER = '##'
-exports.RAW_START = parseInt('FA000', 16) # Arbitrarly private-use unicode character
+exports.RAW_DELIMITER_START = '<raw>'
+exports.RAW_DELIMITER_END   = '</raw>'
+exports.RAW_PLACEHOLDER_START = parseInt('FA000', 16) # Arbitrarly private-use unicode character
 
 ##
 # string strip (string)
@@ -181,15 +182,15 @@ exports.nIndexOf = (string, match, index) ->
 # Pass string and replacements back to restoreRaw to reverse.
 #
 # Usage:
-# string = "Do you want to ##<get foo>##?"
-# return = {result: "Do you want to !?", replacements: {!: "##<get foo>##"}}
+# string = "Do you want to <raw><get foo></raw>?"
+# return = {result: "Do you want to !?", replacements: {!: "<raw><get foo></raw>"}}
 #
 # Summary: Strips chunks flagged as raw from string
 ##
 exports.extractRaw = (string) ->
-  re = new RegExp('(' + exports.RAW_DELIMITER + '.*?' + exports.RAW_DELIMITER + ')', 'g')
+  re = new RegExp('(' + exports.RAW_DELIMITER_START + '.*?' + exports.RAW_DELIMITER_END + ')', 'g')
   response = {replacements: {}, result: ''}
-  currKey = exports.RAW_START
+  currKey = exports.RAW_PLACEHOLDER_START
   response.result = string.replace(re, ((match, raw, pos) ->
     replacement = String.fromCodePoint(currKey)
     response.replacements[replacement] = raw
@@ -207,7 +208,7 @@ exports.extractRaw = (string) ->
 # Usage:
 # string = "Do you want to !?"
 # replacements = {!: "<get foo>"}
-# return = "Do you want to ##<get foo>##?"
+# return = "Do you want to <raw><get foo></raw>?"
 #
 # Summary: Restores strings stripped via extractRaw
 ##
@@ -222,13 +223,11 @@ exports.restoreRaw = (string, replacements) ->
 # Clears any raw delimiters remaining in a string
 #
 # Usage:
-# string = "Do you want to ! ##<get foo>##?"
+# string = "Do you want to <raw><get foo></raw>?"
 # return = "Do you want to <get foo>?"
 #
 # Summary: Removes characters left over from raw processing
 ##
 exports.cleanupRaw = (string) ->
-  rangeStart = exports.RAW_START.toString(16)
-  rangeEnd = (exports.RAW_START + 100).toString(16)
-  re = new RegExp('(?:' + exports.RAW_DELIMITER + ')', 'g')
+  re = new RegExp('(?:' + exports.RAW_DELIMITER_START + ')|(?:' + exports.RAW_DELIMITER_END + ')', 'g')
   return string.replace(re, '')
