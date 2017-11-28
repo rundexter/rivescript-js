@@ -232,3 +232,27 @@ exports.test_reply_arrays = (test) ->
     "HELLO WORLD", "hello world", "Hello World", "Hello world",
   ])
   test.done()
+
+exports.test_raw = (test) ->
+  bot = new TestCase(test, '''
+    > object test javascript
+    return 'OH NO';
+    < object
+
+    + rawget
+    - OK <raw><get foo></raw> DONE
+    
+    + rawtopic
+    - OK <raw>{topic=foo}</raw> DONE
+
+    + rawcall
+    - OK <raw><call>test</call></raw> DONE
+    
+    + multiraw
+    - <raw><call>test</call></raw> <call>test</call> <raw>^two()</raw> ...DONE? <raw>{@ok}</raw>!
+  ''')
+  bot.reply('rawget', 'OK <get foo> DONE')
+  bot.reply('rawtopic', 'OK {topic=foo} DONE')
+  bot.reply('rawcall', 'OK <call>test</call> DONE')
+  bot.reply('multiraw', '<call>test</call> OH NO ^two() ...DONE? {@ok}!')
+  test.done()
