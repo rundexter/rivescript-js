@@ -323,9 +323,6 @@ class Parser
               fields = fields.filter (val)-> val != ''
 
               ast.begin.array[name] = fields
-                
-              # Skip ahead to the end of the array declaration found in our lookahead
-              lineno = lineno + li # li should be the last index in the lookahead loop
 
             when "sub"
               # Substitutions
@@ -484,6 +481,8 @@ class Parser
         else
           @warn "Unknown command '#{cmd}' (in topic #{topic})", filename, lineno
 
+      # Skip ahead to the end of the last line consumed by any lookahead work
+      lineno = lineno + li # li should be the last index in the lookahead loop
     return ast
 
   ##
