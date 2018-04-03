@@ -829,6 +829,20 @@ class RiveScript
       if key is "topic" and @_forceCase
         data[key] = data[key].toLowerCase()
 
+      # History, and history the wrong size?
+      if key is "__history__"
+        # For each of our two collections...
+        for subkey of ['input', 'reply']
+          # If the key actually exists (new data is initialized in the brain)
+          if data[key][subkey]
+            currLen = data[key][subkey].length
+            # If we don't have enough, pad things
+            if currLen < @historyCount
+              data[key][subkey].push("undefined") for i in [0...@historyCount - currLen]
+            # If we have too much, get rid of the oldest things
+            else if currLen > @historyCount
+              data[key][subkey].shift() for i in [0...currLen - @historyCount]
+
       if data[key] is undefined
         delete @_users[user][key]
       else
