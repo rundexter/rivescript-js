@@ -22,6 +22,7 @@ class Brain
     @master = master
     @strict = master._strict
     @utf8   = master._utf8
+    @historyCount = master._historyCount
 
     # Private variables only relevant to the reply-answering part of RiveScript.
     @_currentUser = null # The current user asking for a message
@@ -332,10 +333,10 @@ class Brain
 
   onAfterReply: (msg, user, reply) ->
     # Save their reply history
-    @master._users[user].__history__.input.pop()
     @master._users[user].__history__.input.unshift(msg)
-    @master._users[user].__history__.reply.pop()
+    @master._users[user].__history__.input.length = @historyCount
     @master._users[user].__history__.reply.unshift(reply)
+    @master._users[user].__history__.reply.length = @historyCount
 
     # Unset the current user ID.
     @_currentUser = undefined
@@ -528,15 +529,9 @@ class Brain
 
     # Update input &/or reply if given array is missing or empty
     if not @master._users[user].__history__.input || @master._users[user].__history__.input.length == 0
-      @master._users[user].__history__.input = [
-        "undefined", "undefined", "undefined", "undefined", "undefined",
-        "undefined", "undefined", "undefined", "undefined", "undefined"
-      ]
+      @master._users[user].__history__.input = ("undefined" for i in [0...@historyCount])
     if not @master._users[user].__history__.reply || @master._users[user].__history__.reply.length == 0
-      @master._users[user].__history__.reply = [
-        "undefined", "undefined", "undefined", "undefined", "undefined",
-        "undefined", "undefined", "undefined", "undefined", "undefined"
-      ]
+      @master._users[user].__history__.reply = ("undefined" for i in [0...@historyCount])
 
     # More topic sanity checking.
     if not @master._topics[topic]
@@ -995,6 +990,7 @@ class Brain
 
     # Filter in input/reply tags.
     giveup = 0
+    historyMax = @historyCount - 1
     regexp = regexp.replace(/<input>/i, "<input1>")
     regexp = regexp.replace(/<reply>/i, "<reply1>")
     while regexp.indexOf("<input") > -1 or regexp.indexOf("<reply") > -1
@@ -1002,7 +998,7 @@ class Brain
         break
 
       for type in ["input", "reply"]
-        for i in [1..9]
+        for i in [1..historyMax]
           if regexp.indexOf("<#{type}#{i}>") > -1
             regexp = regexp.replace(new RegExp("<#{type}#{i}>", "g"),
               @master._users[user].__history__[type][i])
@@ -1034,6 +1030,7 @@ class Brain
     stars.push.apply(stars, st)
     botstars = [""]
     botstars.push.apply(botstars, bst)
+    historyMax = @historyCount - 1
     if stars.length is 1
       stars.push "undefined"
     if botstars.length is 1
@@ -1081,7 +1078,7 @@ class Brain
     # <input> and <reply>
     reply = reply.replace(/<input>/ig, @master._users[user].__history__.input[0] || "undefined")
     reply = reply.replace(/<reply>/ig, @master._users[user].__history__.reply[0] || "undefined")
-    for i in [1..9]
+    for i in [1..historyMax]
       if reply.indexOf("<input#{i}>") > -1
         reply = reply.replace(new RegExp("<input#{i}>", "ig"),
           @master._users[user].__history__.input[i])
@@ -1267,6 +1264,7 @@ class Brain
     stars.push.apply(stars, st)
     botstars = [""]
     botstars.push.apply(botstars, bst)
+    historyMax = @historyCount - 1
     if stars.length is 1
       stars.push "undefined"
     if botstars.length is 1
@@ -1314,7 +1312,7 @@ class Brain
     # <input> and <reply>
     reply = reply.replace(/<input>/ig, @master._users[user].__history__.input[0] || "undefined")
     reply = reply.replace(/<reply>/ig, @master._users[user].__history__.reply[0] || "undefined")
-    for i in [1..9]
+    for i in [1..historyMax]
       if reply.indexOf("<input#{i}>") > -1
         reply = reply.replace(new RegExp("<input#{i}>", "ig"),
           @master._users[user].__history__.input[i])

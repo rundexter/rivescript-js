@@ -1,6 +1,7 @@
 # Utility functions for the unit tests.
 
 RiveScript = require("../lib/rivescript")
+_ = require('lodash')
 
 ##
 # Base class for use with all test cases. Initializes a new RiveScript bot
