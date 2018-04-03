@@ -52,12 +52,12 @@ exports.test_bot_variable_override = (test) ->
   """, historyCount: 3)
   bot.rs.setUservars('user', __history__: reply: ["A"], input: ["a"])
   history = bot.rs.getUservar('user', '__history__')
-  bot.assertEquals(history.input, ['undefined', 'undefined', 'a']);
-  bot.assertEquals(history.reply, ['undefined', 'undefined', 'A']);
+  bot.assertEquals(history.input, ['a', 'undefined', 'undefined']);
+  bot.assertEquals(history.reply, ['A', 'undefined', 'undefined']);
 
   bot.rs.setUservars('user', __history__: reply: ["A", "B", "C", "D", "E"], input: ["a", "b", "c", "d", "e"])
   history = bot.rs.getUservar('user', '__history__')
-  bot.assertEquals(history.input, ['c', 'd', 'e']);
-  bot.assertEquals(history.reply, ['C', 'D', 'E']);
+  bot.assertEquals(history.input, ['a', 'b', 'c']);
+  bot.assertEquals(history.reply, ['A', 'B', 'C']);
 
   test.done()

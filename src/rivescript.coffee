@@ -838,10 +838,10 @@ class RiveScript
             currLen = data[key][subkey].length
             # If we don't have enough, pad things
             if currLen < @_historyCount
-              data[key][subkey].unshift("undefined") for i in [0...@_historyCount - currLen]
+              data[key][subkey].push("undefined") for i in [0...@_historyCount - currLen]
             # If we have too much, get rid of the oldest things
             else if currLen > @_historyCount
-              data[key][subkey].shift() for i in [0...currLen - @_historyCount]
+              data[key][subkey].pop() for i in [0...currLen - @_historyCount]
 
       if data[key] is undefined
         delete @_users[user][key]
