@@ -27,13 +27,6 @@ class TestCase
         @rs.stream(code)
         @rs.sortReplies()
 
-    assert: (val, msg) ->
-        if !val
-          throw new Error(msg || 'Assertion failed')
-
-    assertEquals: (curr, expected) =>
-        @assert(_.isEqual(curr, expected), "Expected " + JSON.stringify(curr) + " to equal " + JSON.stringify(expected))
-
     ##
     # Remove a single topic from the bot
     #

@@ -333,10 +333,10 @@ class Brain
 
   onAfterReply: (msg, user, reply) ->
     # Save their reply history
-    @master._users[user].__history__.input.pop()
     @master._users[user].__history__.input.unshift(msg)
-    @master._users[user].__history__.reply.pop()
+    @master._users[user].__history__.input.length = @historyCount
     @master._users[user].__history__.reply.unshift(reply)
+    @master._users[user].__history__.reply.length = @historyCount
 
     # Unset the current user ID.
     @_currentUser = undefined
