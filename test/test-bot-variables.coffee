@@ -44,3 +44,20 @@ exports.test_global_variables = (test) ->
   bot.reply("Set debug mode true", "Switched to true.")
   bot.reply("Debug mode?", "Debug mode is: true")
   test.done()
+
+exports.test_bot_variable_override = (test) ->
+  bot = new TestCase(test, """
+    + *
+    - N/A
+  """, historyCount: 3)
+  bot.rs.setUservars('user', __history__: reply: ["A"], input: ["a"])
+  history = bot.rs.getUservar('user', '__history__')
+  bot.assertEquals(history.input, ['undefined', 'undefined', 'a']);
+  bot.assertEquals(history.reply, ['undefined', 'undefined', 'A']);
+
+  bot.rs.setUservars('user', __history__: reply: ["A", "B", "C", "D", "E"], input: ["a", "b", "c", "d", "e"])
+  history = bot.rs.getUservar('user', '__history__')
+  bot.assertEquals(history.input, ['c', 'd', 'e']);
+  bot.assertEquals(history.reply, ['C', 'D', 'E']);
+
+  test.done()

@@ -1,6 +1,7 @@
 # Utility functions for the unit tests.
 
 RiveScript = require("../lib/rivescript")
+_ = require('lodash')
 
 ##
 # Base class for use with all test cases. Initializes a new RiveScript bot
@@ -25,6 +26,13 @@ class TestCase
     extend: (code) ->
         @rs.stream(code)
         @rs.sortReplies()
+
+    assert: (val, msg) ->
+        if !val
+          throw new Error(msg || 'Assertion failed')
+
+    assertEquals: (curr, expected) =>
+        @assert(_.isEqual(curr, expected), "Expected " + JSON.stringify(curr) + " to equal " + JSON.stringify(expected))
 
     ##
     # Remove a single topic from the bot

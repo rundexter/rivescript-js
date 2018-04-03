@@ -832,16 +832,16 @@ class RiveScript
       # History, and history the wrong size?
       if key is "__history__"
         # For each of our two collections...
-        for subkey of ['input', 'reply']
+        for subkey in ['input', 'reply']
           # If the key actually exists (new data is initialized in the brain)
           if data[key][subkey]
             currLen = data[key][subkey].length
             # If we don't have enough, pad things
-            if currLen < @historyCount
-              data[key][subkey].push("undefined") for i in [0...@historyCount - currLen]
+            if currLen < @_historyCount
+              data[key][subkey].unshift("undefined") for i in [0...@_historyCount - currLen]
             # If we have too much, get rid of the oldest things
-            else if currLen > @historyCount
-              data[key][subkey].shift() for i in [0...currLen - @historyCount]
+            else if currLen > @_historyCount
+              data[key][subkey].shift() for i in [0...currLen - @_historyCount]
 
       if data[key] is undefined
         delete @_users[user][key]
