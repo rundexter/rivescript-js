@@ -190,6 +190,7 @@ class RiveScript
     @_forceCase = if opts.forceCase then opts.forceCase else false
     @_onDebug   = if opts.onDebug then opts.onDebug else null
     @_concat    = if opts.concat then opts.concat else null
+    @_historyCount = if opts.historyCount then opts.historyCount else 10
 
     # UTF-8 punctuation, overridable by the user.
     @unicodePunctuation = new RegExp(/[.,!?;:]/g)
