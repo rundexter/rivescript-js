@@ -1208,6 +1208,10 @@ class Brain
             @master.setUservar(user, name, result)
       else if tag is "get"
         insert = @master.getUservar(user, data)
+        # Sanity check for infinite loop
+        if String(insert).match(new RegExp('\<get\\s+' + data + '\>'))
+          @warn "Potential infinite loop with data in GET trying to GET itself"
+          insert = ""
       else
         # Unrecognized tag, preserve it
         insert = "\x00#{match}\x01"
