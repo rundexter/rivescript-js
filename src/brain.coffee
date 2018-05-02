@@ -1219,7 +1219,7 @@ class Brain
         # Sanity check for infinite loop
         if String(insert).match(new RegExp('\<get\\s+' + data + '\>'))
           @warn "Potential infinite loop with data in GET trying to GET itself"
-          insert = ""
+          insert = @master.errors.recursiveVar
       else
         # Unrecognized tag, preserve it
         insert = "\x00#{match}\x01"
