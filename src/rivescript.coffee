@@ -201,6 +201,7 @@ class RiveScript
       replyNotFound:        "ERR: No Reply Found"
       objectNotFound:       "[ERR: Object Not Found]"
       deepRecursion:        "ERR: Deep Recursion Detected"
+      recursiveVar:         "ERR: Encountered self-referential variable"
     if typeof(opts.errors) is "object"
       for key, value of opts.errors
         if opts.errors.hasOwnProperty(key)
