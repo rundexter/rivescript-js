@@ -264,3 +264,20 @@ exports.test_raw = (test) ->
   .then -> bot.replyPromisified('multiraw', '<call>test</call> OH NO ^two() ...DONE? {@ok}!')
   .catch (err) -> test.ok(false, err.stack)
   .then -> test.done()
+
+exports.test_get_recursion = (test) ->
+  bot = new TestCase(test, '''
+    > object set_recurse_var javascript
+      rs.setUservar(rs.currentUser(), 'next', '<get next>');
+    < object
+    
+    + init
+    - <call>set_recurse_var</call> Ready
+    
+    + go
+    - Foo <get next> Bar
+  ''')
+  bot.replyPromisified('init', ' Ready')
+  .then -> bot.replyPromisified('go', 'Foo  Bar')
+  .catch (err) -> test.ok(false, err.stack)
+  .then -> test.done()
