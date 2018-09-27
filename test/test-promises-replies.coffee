@@ -278,6 +278,15 @@ exports.test_get_recursion = (test) ->
     - Foo <get next> Bar
   ''')
   bot.replyPromisified('init', ' Ready')
-  .then -> bot.replyPromisified('go', 'Foo  Bar')
+  .then -> bot.replyPromisified('go', "Foo #{bot.rs.errors.recursiveVar} Bar")
+  .catch (err) -> test.ok(false, err.stack)
+  .then -> test.done()
+
+exports.test_replace_recursion = (test) ->
+  bot = new TestCase(test, '''
+    + *
+    - {@a}{@b}
+  ''')
+  bot.replyPromisified('go', "#{bot.rs.errors.deepRecursion}")
   .catch (err) -> test.ok(false, err.stack)
   .then -> test.done()
