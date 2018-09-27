@@ -1245,9 +1245,12 @@ class Brain
       match = reply.match(/\{topic=(.+?)\}/i) # Look for more
 
     # Inline redirector
+    giveup = false
     redirects = reply.match(/\{@([^\}]*?)\}/g)
     _.reduce( redirects, (promise, redirect) =>
       promise.then =>
+        if giveup
+          return
         match = redirect.match(/\{@([^\}]*?)\}/)
         target = utils.strip match[1]
 
@@ -1256,7 +1259,12 @@ class Brain
 
         @say "Inline redirection to: #{target}"
         @_getReplyWithHooks(user, target, "normal", step+1, scope, hooks).then (subreply) =>
-          reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
+          if subreply == @master.errors.deepRecursion
+            @say "A redirect triggered deep recursion in an async response, cancelling..."
+            reply = @master.errors.deepRecursion # Resetting the reply to this error allows it to propagate back up
+            giveup = true
+          else
+            reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
     , q(reply)).then =>
       utils.restoreRaw(reply, replacements)
 
@@ -1492,8 +1500,14 @@ class Brain
       # Resolve any *synchronous* <call> tags right now before redirecting.
       target = @processCallTags(target, scope, false)
 
-      @say "Inline redirection to: #{target}"
+      @say "Inline redirection to: #{target} Step #{step} of #{@master._depth} Giveup #{giveup}"
       subreply = @_getReply(user, target, "normal", step+1, scope)
+      if subreply == @master.errors.deepRecursion
+        @say "A redirect triggered deep recursion, cancelling..."
+        reply = @master.errors.deepRecursion # Resetting the reply to this error allows it to propagate back up
+        match = false
+        break
+      @say "Inline returned #{subreply}"
       reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
       match = reply.match(/\{@([^\}]*?)\}/)
 
