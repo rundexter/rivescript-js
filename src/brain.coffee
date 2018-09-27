@@ -1246,9 +1246,9 @@ class Brain
 
     # Inline redirector
     redirects = reply.match(/\{@([^\}]*?)\}/g)
-    _.reduce( redirects, (promise, redirect) =>
-      promise.then =>
-        match = redirect.match(/\{@([^\}]*?)\}/)
+    if redirects
+      q(reply).then =>
+        match = redirects[0].match(/\{@([^\}]*?)\}/)
         target = utils.strip match[1]
 
         # Resolve any *synchronous* <call> tags right now before redirecting.
@@ -1257,8 +1257,8 @@ class Brain
         @say "Inline redirection to: #{target}"
         @_getReplyWithHooks(user, target, "normal", step+1, scope, hooks).then (subreply) =>
           reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
-    , q(reply)).then =>
-      utils.restoreRaw(reply, replacements)
+      .then =>
+        utils.restoreRaw(reply, replacements)
 
   ##
   # string processTags (string user, string msg, string reply, string[] stars,
@@ -1480,13 +1480,7 @@ class Brain
 
     # Inline redirector
     match = reply.match(/\{@([^\}]*?)\}/)
-    giveup = 0
-    while match
-      giveup++
-      if giveup >= 50
-        @warn "Infinite loop looking for redirect tag!"
-        break
-
+    if match
       target = utils.strip match[1]
 
       # Resolve any *synchronous* <call> tags right now before redirecting.
@@ -1495,7 +1489,6 @@ class Brain
       @say "Inline redirection to: #{target}"
       subreply = @_getReply(user, target, "normal", step+1, scope)
       reply = reply.replace(new RegExp("\\{@" + utils.quotemeta(match[1]) + "\\}", "i"), subreply)
-      match = reply.match(/\{@([^\}]*?)\}/)
 
     reply = utils.restoreRaw(reply, replacements)
     return reply
