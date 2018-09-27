@@ -105,6 +105,10 @@ rl.on "line", (cmd) ->
     console.log(eval(cmd.replace("/log ", "")))
   else if cmd is "/quit"
     process.exit 0
+  else if cmd.indexOf("/async ") is 0
+    console.log "(replying in promise chain)"
+    bot.replyPromisified("localuser", cmd.replace("/async ", ""))
+    .then (reply) -> console.log "Bot> #{reply}"
   else
     reply = if (bot and bot.ready) then bot.reply("localuser", cmd) else "ERR: Bot not ready yet"
     console.log "Bot> #{reply}"
