@@ -256,3 +256,11 @@ exports.test_raw = (test) ->
   bot.reply('rawcall', 'OK <call>test</call> DONE')
   bot.reply('multiraw', '<call>test</call> OH NO ^two() ...DONE? {@ok}!')
   test.done()
+
+exports.test_replace_recursion = (test) ->
+  bot = new TestCase(test, '''
+    + *
+    - {@a}{@b}
+  ''')
+  bot.reply('go', "#{bot.rs.errors.deepRecursion}")
+  test.done()
