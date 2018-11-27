@@ -47,6 +47,7 @@ readDir = require("fs-readdir-recursive")
 # * bool utf8:      Enable UTF-8 mode        (default false, see below)
 # * bool forceCase: Force-lowercase triggers (default false, see below)
 # * func onDebug:   Set a custom handler to catch debug log messages (default null)
+# * func onStats:   Set a custom handler to get statistics when available (default null)
 # * obj  errors:    Customize certain error messages (see below)
 # * str  concat:    Globally replace the default concatenation mode when parsing
 #                   RiveScript source files (default `null`. be careful when
@@ -189,6 +190,7 @@ class RiveScript
     @_utf8      = if opts.utf8 then opts.utf8 else false
     @_forceCase = if opts.forceCase then opts.forceCase else false
     @_onDebug   = if opts.onDebug then opts.onDebug else null
+    @_onStats   = if opts.onStats then opts.onStats else null
     @_concat    = if opts.concat then opts.concat else null
     @_historyCount = if opts.historyCount then opts.historyCount else 10
 
@@ -319,6 +321,17 @@ class RiveScript
       @_onDebug message
     else
       console.log message
+
+  ##
+  # private void reportStats (string statName, Object data)
+  #
+  # Various parts of the code (OK, really just the parser for now) emit stats
+  # after processing.  You can listen for these stats here if you want to capture
+  # them for analytics.
+  ##
+  reportStats: (statName, data) ->
+    if @_onStats
+      @_onStats statName, data
 
   ##
   # private void warn (string message[, filename, lineno])

@@ -95,6 +95,42 @@ class Parser
     curTrig = null     # Pointer to the current trigger in the ast.topics
     lastcmd = ""       # Last command code
     isThat  = null     # Is a %Previous trigger
+    cmdTpl  = {
+      'define': 0,
+      'label': 0,
+      'trigger': 0,
+      'afterMatch': 0,
+      'response': 0,
+      'condition': 0,
+      'previous': 0,
+      'continue': 0,
+      'redirect': 0
+    }
+    stats   = {
+      # How many total lines
+      lines: 0
+      # How many lines of actual code
+      , codelines: 0
+      # How many lines defining objects
+      , objectlines: 0
+      # How many objects
+      , objects: 0
+      # How many lines defining comments
+      , comments: 0
+      # How many syntax errors we encountered
+      , syntaxerrors: 0
+      # Timing data
+      , times: {
+        # When we started (ts in ms)
+        start: Date.now()
+        # How long it took
+        , duration: 0
+        # How long we spent processing each type of command
+        , cmds: Object.assign({}, cmdTpl)
+      }
+      # How many of each command we processed
+      , cmds: Object.assign({}, cmdTpl)
+    }
 
     # Local (file scoped) parser options
     localOptions =
@@ -112,6 +148,7 @@ class Parser
     #   prevent that behavior.
     lines = code.split "\n"
     lineno = 0
+    stats.lines = lines.length
 
     while lineno < lines.length
       lineno = lineno + 1
@@ -130,6 +167,7 @@ class Parser
         # End of the object?
         if line.indexOf("< object") > -1 or line.indexOf("<object") > -1 # TODO
           # End the object.
+          stats.objects++
           if objName.length > 0
             ast.objects.push
               name: objName
@@ -139,6 +177,7 @@ class Parser
           objBuf = []
           inobj = false
         else
+          stats.objectlines++
           objBuf.push line
         continue
 
@@ -146,14 +185,17 @@ class Parser
       # Look for comments
       #------------------
       if line.indexOf("//") is 0 # Single line comment
+        stats.comments++
         continue
       else if line.indexOf("#") is 0 # Old style single line comment
         @warn "Using the # symbol for comments is deprecated", filename, lineno
+        stats.comments++
         continue
       else if line.indexOf("/*") is 0
         # Start of a multi-line comment.
         if line.indexOf("*/") > -1
           # The end comment is on the same line!
+          stats.comments++
           continue
 
         # We're now inside a multi-line comment.
@@ -161,15 +203,20 @@ class Parser
         continue
       else if line.indexOf("*/") > -1
         # End of a multi-line comment.
+        stats.comments++
         comment = false
         continue
       if comment
         continue
 
-      # Separate the command from the data
       if line.length < 2
         @warn "Weird single-character line '#{line}' found (in topic #{topic})", filename, lineno
         continue
+
+      # It's a real, non-object line, so count it
+      stats.codelines++
+
+      # Separate the command from the data
       cmd = line.substring 0, 1
       line = utils.strip(line.substring(1))
 
@@ -197,6 +244,8 @@ class Parser
         isThat = null
 
       @say "Cmd: #{cmd}; line: #{line}"
+
+      cmdstart = Date.now() # We include the lookahead in the per-command processing
 
       # Do a look-ahead for ^Continue and %Previous commands.
       for lookahead, li in lines[lp+1..]
@@ -246,8 +295,10 @@ class Parser
             break
 
       # Handle the types of RiveScript commands.
+      cmdtype = null
       switch cmd
         when "!" # ! Define
+          cmdtype = 'define'
           halves = line.split("=", 2)
           left   = utils.strip(halves[0]).split(" ")
           value = type = name = ""
@@ -400,6 +451,7 @@ class Parser
 
         when "<"
           # < Label
+          cmdtype = 'label'
           type = line
 
           if type is "begin" or type is "topic"
@@ -411,6 +463,7 @@ class Parser
 
         when "+"
           # + Trigger
+          cmdtype = 'trigger'
           @say "\tTrigger pattern: #{line}"
 
           # Initialize the trigger tree.
@@ -425,6 +478,7 @@ class Parser
           ast.topics[topic].triggers.push curTrig
         when "$"
           # $ afterMatch
+          cmdtype = 'afterMatch'
           if curTrig is null
             @warn "afterMatch found before trigger", filename, lineno
             continue
@@ -437,6 +491,7 @@ class Parser
           curTrig.afterMatch.push line
         when "-"
           # - Response
+          cmdtype = 'response'
           if curTrig is null
             @warn "Response found before trigger", filename, lineno
             continue
@@ -450,6 +505,7 @@ class Parser
 
         when "*"
           # * Condition
+          cmdtype = 'condition'
           if curTrig is null
             @warn "Condition found before trigger", filename, lineno
             continue
@@ -463,14 +519,17 @@ class Parser
 
         when "%"
           # % Previous
+          cmdtype = 'previous'
           continue # This was handled above
 
         when "^"
           # ^ Continue
+          cmdtype = 'continue'
           continue # This was handled above
 
         when "@"
           # @ Redirect
+          cmdtype = 'redirect'
           # Make sure they didn't mix them with incompatible commands.
           if curTrig.reply.length > 0 or curTrig.condition.length > 0
             @warn "You can't mix @Redirects with -Replies or *Conditions", filename, lineno
@@ -483,6 +542,12 @@ class Parser
 
       # Skip ahead to the end of the last line consumed by any lookahead work
       lineno = lineno + li # li should be the last index in the lookahead loop
+      # Track our per-command stats
+      if cmdtype
+        stats.times.cmds[cmdtype] += Date.now() - cmdstart
+        stats.cmds[cmdtype]++
+    stats.times.duration = Date.now() - stats.times.start
+    @master.reportStats('parser.parse', stats)
     return ast
 
   ##
