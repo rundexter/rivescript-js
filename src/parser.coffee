@@ -107,8 +107,10 @@ class Parser
       'redirect': 0
     }
     stats   = {
-      # How many total lines
+      # How many total lines in the source
       lines: 0
+      # How many total characters in the final AST
+      , astcharacters: 0
       # How many lines of actual code
       , codelines: 0
       # How many lines defining objects
@@ -547,6 +549,7 @@ class Parser
         stats.times.cmds[cmdtype] += Date.now() - cmdstart
         stats.cmds[cmdtype]++
     stats.times.duration = Date.now() - stats.times.start
+    stats.astcharacters = JSON.stringify(ast).length
     @master.reportStats('parser.parse', stats)
     return ast
 
