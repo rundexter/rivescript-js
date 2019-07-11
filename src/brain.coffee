@@ -11,6 +11,9 @@ utils = require("./utils")
 inherit_utils = require("./inheritance")
 q = require("q")
 _ = require("lodash")
+# An arbitrary private-use character (https://en.wikipedia.org/wiki/Private_Use_Areas) we use to deliniate already-
+# replaced strings in Brain#substitute
+SUBSTITUTION_BOUNDARY = String.fromCodePoint(0x10FF43)
 
 ##
 # Brain (RiveScript master)
@@ -1523,7 +1526,7 @@ class Brain
   # the type of substitution to run.
   substitute: (msg, type) ->
 
-    # Safety checking.
+    # Safety checking.  We want our substitutions sorted so that the biggest phrases get replaced first.
     if not @master._sorted[type]
       @master.warn "You forgot to call sortReplies()!"
       return ""
@@ -1531,65 +1534,22 @@ class Brain
     # Get the substitutions map.
     subs = if type is "sub" then @master._sub else @master._person
 
-    # Get the max number of words in sub/person to minimize interations
-    maxwords = if type is "sub" then @master._submax else @master._personmax
+    # Bail fast if there's nothing to do
+    if Object.keys(subs).length == 0
+      return msg
 
-    result = ""
-
-    # Take the original message with no punctuation
-    if @master.unicodePunctuation?
-      pattern = msg.replace(@master.unicodePunctuation, "")
-    else
-      pattern = msg.replace(/[.,!?;:]/g, "")
-
-    tries = 0
-    giveup = 0
-    subgiveup = 0
-
-    # Look for words/phrases until there is no "spaces" in pattern
-    while pattern.indexOf(" ") > -1
-      giveup++
-      # Give up if there are too many substitutions (for safety)
-      if giveup >= 1000
-        @warn "Too many loops when handling substitutions!"
-        break
-
-      li = utils.nIndexOf(pattern, " ", maxwords)
-      subpattern = pattern.substring(0, li)
-
-      # If finds the pattern in sub object replace and stop to look
-      result = subs[subpattern];
-      if result!=undefined
-          msg = msg.replace(subpattern, result)
-      else
-        # Otherwise Look for substitutions in a subpattern
-        while subpattern.indexOf(" ") > -1
-            subgiveup++
-            # Give up if there are too many substitutions (for safety)
-            if subgiveup >= 1000
-                @warn("Too many loops when handling substitutions!")
-                break
-
-              li = subpattern.lastIndexOf(" ");
-              subpattern = subpattern.substring(0, li);
-
-              # If finds the subpattern in sub object replace and stop to look
-              result = subs[subpattern];
-              if result!=undefined
-                  msg = msg.replace(subpattern, result)
-                  break
-
-              tries++;
-
-      fi = pattern.indexOf(" ")
-      pattern = pattern.substring(fi+1)
-      tries++
-
-    # After all loops, see if just one word is in the pattern
-    result = subs[pattern]
-    if result!=undefined
-        msg = msg.replace(pattern, result)
-
+    not_sub = '[^' + SUBSTITUTION_BOUNDARY + ']'
+    
+    for src, repl of subs
+      # Wrap our search regex with no-boundary character checks.  This ensures we don't double-replace phrases -
+      # important if someone wants to switch sentence contexts, say by swapping "you are" with "i am", then "i am" with
+      # "you are".
+      rx = new RegExp('(^|' + not_sub + ')' + utils.quotemeta(src) + '(' + not_sub + '|$)', 'giu')
+      # Add the boundaries to our replacement so they get ignored by future search regexes
+      fixed_repl = SUBSTITUTION_BOUNDARY + '$1' + repl + '$2' + SUBSTITUTION_BOUNDARY
+      msg = msg.replace(rx, fixed_repl)
+    # Clean up all the substitution boundaries we added along the way
+    msg = msg.replace(new RegExp(SUBSTITUTION_BOUNDARY, 'gu'), '')
     return msg
 
 module.exports = Brain
