@@ -11,6 +11,9 @@ exports.test_substitutions = (test) ->
 
     + what is up
     - Not much.
+
+    + *
+    - You said <star>
   """)
   bot.reply("whats up", "nm.")
   bot.reply("what's up?", "nm.")
@@ -19,10 +22,12 @@ exports.test_substitutions = (test) ->
   bot.extend("""
     ! sub whats  = what is
     ! sub what's = what is
+    ! sub <3 = heart
   """)
   bot.reply("whats up", "Not much.")
   bot.reply("what's up?", "Not much.")
   bot.reply("What is up?", "Not much.")
+  bot.reply("<3", "You said heart")
   test.done()
 
 exports.test_person_substitutions = (test) ->
