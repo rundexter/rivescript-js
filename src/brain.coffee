@@ -219,7 +219,7 @@ class Brain
                 bucket.push rep
 
             # Get a random reply.
-            choice = parseInt(Math.random() * bucket.length)
+            choice = if @master._forceFirst then 1 else parseInt(Math.random() * bucket.length)
             return bucket[choice]
           else if _.get(matched, 'reply.length', 0) is 0
             return @master.errors.replyNotFound
@@ -791,7 +791,7 @@ class Brain
             bucket.push rep
 
         # Get a random reply.
-        choice = parseInt(Math.random() * bucket.length)
+        choice = if @master._forceFirst then 1 else parseInt(Math.random() * bucket.length)
         reply  = bucket[choice]
         break
 

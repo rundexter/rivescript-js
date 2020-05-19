@@ -67,6 +67,33 @@ exports.test_random = (test) ->
   ])
   .then -> test.done()
 
+exports.test_unrandom = (test) ->
+  bot = new TestCase(test, """
+    + test random response
+    - One.
+    - Three.
+    - Two.
+    - Two.
+    - Two.
+    - Two.
+    - Two.
+    - Two.
+    - Two.
+    - Two.
+  """, {"forceFirst": true})
+  # Yeah, this is ugly and imperfect, but there isn't a good way to test a pool of answers right now.
+  bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> bot.replyPromisified("test random response", "One.")
+  .then -> test.done()
+
 exports.test_continuations = (test) ->
   bot = new TestCase(test, """
     + tell me a poem
