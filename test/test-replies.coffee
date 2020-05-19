@@ -77,6 +77,9 @@ exports.test_unrandom = (test) ->
     - Two.
     - Two.
     - Two.
+
+    + test random tag
+    - Pick {random}1|2|2|2|2|2|2|2|2|2|2{/random}
   """, {"forceFirst": true})
   # Yeah, this is ugly and imperfect, but there isn't a good way to test a pool of answers right now.
   bot.reply("test random response", "One.")
@@ -89,7 +92,16 @@ exports.test_unrandom = (test) ->
   bot.reply("test random response", "One.")
   bot.reply("test random response", "One.")
   bot.reply("test random response", "One.")
-  bot.reply("test random response", "One.")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
+  bot.reply("test random tag", "Pick 1")
   test.done()
 
 exports.test_continuations = (test) ->

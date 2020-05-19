@@ -1107,7 +1107,8 @@ class Brain
       else
         random = text.split(" ")
 
-      output = random[ parseInt(Math.random() * random.length) ]
+      choice = if @master._forceFirst then 0 else parseInt(Math.random() * random.length)
+      output = random[choice] 
 
       reply = reply.replace(new RegExp("\\{random\\}" + utils.quotemeta(text) + "\\{\\/random\\}", "ig")
         output)
@@ -1361,7 +1362,8 @@ class Brain
       else
         random = text.split(" ")
 
-      output = random[ parseInt(Math.random() * random.length) ]
+      choice = if @master._forceFirst then 0 else parseInt(Math.random() * random.length)
+      output = random[choice]
 
       reply = reply.replace(new RegExp("\\{random\\}" + utils.quotemeta(text) + "\\{\\/random\\}", "ig")
         output)
