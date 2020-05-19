@@ -86,7 +86,7 @@ exports.stripNasties = (string, utf8) ->
 # Escape a string for a regexp.
 ##
 exports.quotemeta = (string) ->
-  unsafe = "\\.+*?[^]$(){}=!<>|:".split("")
+  unsafe = "\\.+*?[^]$(){}=!|:".split("")
   for char in unsafe
     string = string.replace(new RegExp("\\#{char}", "g"), "\\#{char}")
   return string
