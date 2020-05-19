@@ -41,18 +41,19 @@ readDir = require("fs-readdir-recursive")
 # following keys:
 #
 # ```
-# * bool debug:     Debug mode               (default false)
-# * int  depth:     Recursion depth limit    (default 50)
-# * bool strict:    Strict mode              (default true)
-# * bool utf8:      Enable UTF-8 mode        (default false, see below)
-# * bool forceCase: Force-lowercase triggers (default false, see below)
-# * func onDebug:   Set a custom handler to catch debug log messages (default null)
-# * func onStats:   Set a custom handler to get statistics when available (default null)
-# * obj  errors:    Customize certain error messages (see below)
-# * str  concat:    Globally replace the default concatenation mode when parsing
-#                   RiveScript source files (default `null`. be careful when
-#                   setting this option if using somebody else's RiveScript
-#                   personality; see below)
+# * bool debug:      Debug mode               (default false)
+# * int  depth:      Recursion depth limit    (default 50)
+# * bool strict:     Strict mode              (default true)
+# * bool utf8:       Enable UTF-8 mode        (default false, see below)
+# * bool forceCase:  Force-lowercase triggers (default false, see below)
+# * bool forceFirst: Force selection of first result (default false, see below)
+# * func onDebug:    Set a custom handler to catch debug log messages (default null)
+# * func onStats:    Set a custom handler to get statistics when available (default null)
+# * obj  errors:     Customize certain error messages (see below)
+# * str  concat:     Globally replace the default concatenation mode when parsing
+#                    RiveScript source files (default `null`. be careful when
+#                    setting this option if using somebody else's RiveScript
+#                    personality; see below)
 # ```
 #
 # ## UTF-8 Mode
@@ -85,6 +86,21 @@ readDir = require("fs-readdir-recursive")
 # in triggers, see [case folding in Unicode](https://www.w3.org/International/wiki/Case_folding).
 # If you need to support Unicode symbols in triggers this may cause problems with
 # certain symbols when made lowercase.
+#
+# ## Force First
+#
+# In some execution contexts (like running deterministic tests against the bot),
+# you want to avoid unpredictable results.  In these cases you can configure the
+# bot to always only return the first possible result from a set, so
+#
+# ```
+# + rand
+# - 1
+# - 2
+# - 3
+# ```
+#
+# will only ever return 1.
 #
 # ## Global Concat Mode
 #
@@ -184,14 +200,15 @@ class RiveScript
       opts = {}
 
     # Default parameters
-    @_debug     = if opts.debug then opts.debug else false
-    @_strict    = if opts.strict then opts.strict else true
-    @_depth     = if opts.depth then parseInt(opts.depth) else 50
-    @_utf8      = if opts.utf8 then opts.utf8 else false
-    @_forceCase = if opts.forceCase then opts.forceCase else false
-    @_onDebug   = if opts.onDebug then opts.onDebug else null
-    @_onStats   = if opts.onStats then opts.onStats else null
-    @_concat    = if opts.concat then opts.concat else null
+    @_debug      = if opts.debug then opts.debug else false
+    @_strict     = if opts.strict then opts.strict else true
+    @_depth      = if opts.depth then parseInt(opts.depth) else 50
+    @_utf8       = if opts.utf8 then opts.utf8 else false
+    @_forceCase  = if opts.forceCase then opts.forceCase else false
+    @_forceFirst = if opts.forceFirst then opts.forceFirst else false
+    @_onDebug    = if opts.onDebug then opts.onDebug else null
+    @_onStats    = if opts.onStats then opts.onStats else null
+    @_concat     = if opts.concat then opts.concat else null
     @_historyCount = if opts.historyCount then opts.historyCount else 10
 
     # UTF-8 punctuation, overridable by the user.

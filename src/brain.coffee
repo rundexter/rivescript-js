@@ -219,7 +219,7 @@ class Brain
                 bucket.push rep
 
             # Get a random reply.
-            choice = parseInt(Math.random() * bucket.length)
+            choice = if @master._forceFirst then 1 else parseInt(Math.random() * bucket.length)
             return bucket[choice]
           else if _.get(matched, 'reply.length', 0) is 0
             return @master.errors.replyNotFound
@@ -791,7 +791,7 @@ class Brain
             bucket.push rep
 
         # Get a random reply.
-        choice = parseInt(Math.random() * bucket.length)
+        choice = if @master._forceFirst then 1 else parseInt(Math.random() * bucket.length)
         reply  = bucket[choice]
         break
 
@@ -1107,7 +1107,8 @@ class Brain
       else
         random = text.split(" ")
 
-      output = random[ parseInt(Math.random() * random.length) ]
+      choice = if @master._forceFirst then 0 else parseInt(Math.random() * random.length)
+      output = random[choice] 
 
       reply = reply.replace(new RegExp("\\{random\\}" + utils.quotemeta(text) + "\\{\\/random\\}", "ig")
         output)
@@ -1361,7 +1362,8 @@ class Brain
       else
         random = text.split(" ")
 
-      output = random[ parseInt(Math.random() * random.length) ]
+      choice = if @master._forceFirst then 0 else parseInt(Math.random() * random.length)
+      output = random[choice]
 
       reply = reply.replace(new RegExp("\\{random\\}" + utils.quotemeta(text) + "\\{\\/random\\}", "ig")
         output)
